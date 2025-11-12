@@ -33,24 +33,36 @@
 
             <!-- Right col: Buttons -->
             <div class="col-md-3 d-flex flex-column gap-2">
-                <form asp-action="AddToFlavour" asp-controller="Travel" method="post">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="btn btn-outline-primary w-100">Add to Flavour</button>
-                </form>
+                <button id="flavourBtn" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2"
+                        onclick="toggleFlavour('@Model.Id')">
+                    <i class="bi bi-heart"></i> <span>Add to Favourites</span>
+                </button>
 
-                <form asp-action="Purchase" asp-controller="Travel" method="get">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="btn btn-success w-100">Purchase</button>
-                </form>
+                <div class="mb-2">
+                    <label for="quantity" class="form-label">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" class="form-control" value="1" min="1" max="@Model.Quantity" required />
+                    <small class="text-muted">Available: @Model.Quantity</small>
+                </div>
 
-                <form asp-action="AddToCart" asp-controller="Travel" method="post">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="btn btn-warning w-100">Add to Cart</button>
-                </form>
+                <button type="submit" class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-cart"></i> <span>Purchase</span>
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Toast Container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <div id="flavourToast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="flavourToastBody">
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 
 <style>
     /* Hero image overlay text */
@@ -63,3 +75,64 @@
         display: inline-block;
     }
 </style>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const btn = document.getElementById("flavourBtn");
+        const icon = btn.querySelector("i");
+        const label = btn.querySelector("span");
+        const travelId = '@Model.Id';
+
+        const flavourToastEl = document.getElementById('flavourToast');
+        const flavourToast = new bootstrap.Toast(flavourToastEl);
+        const toastBody = document.getElementById('flavourToastBody');
+
+        async function checkFlavour() {
+            try {
+                const response = await fetch(`/Flavour/IsAdded?travelId=${travelId}`);
+                const data = await response.json();
+                if (data.isAdded) {
+                    icon.classList.replace("bi-heart", "bi-heart-fill");
+                    btn.classList.replace("btn-outline-danger", "btn-danger");
+                    label.textContent = "Added to Favourites";
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        checkFlavour();
+
+        async function toggleFlavour(travelId) {
+            const isAdded = icon.classList.contains("bi-heart-fill");
+
+            try {
+                if (!isAdded) {
+                    const response = await fetch(`/Flavour/Add?travelId=${travelId}`, { method: 'POST' });
+                    if (response.ok) {
+                        icon.classList.replace("bi-heart", "bi-heart-fill");
+                        btn.classList.replace("btn-outline-danger", "btn-danger");
+                        label.textContent = "Added to Favourites";
+
+                        toastBody.textContent = "Added to Favourites ❤️";
+                        flavourToast.show();
+                    }
+                } else {
+                    const response = await fetch(`/Flavour/Remove?travelId=${travelId}`, { method: 'POST' });
+                    if (response.ok) {
+                        icon.classList.replace("bi-heart-fill", "bi-heart");
+                        btn.classList.replace("btn-danger", "btn-outline-danger");
+                        label.textContent = "Add to Favourites";
+
+                        toastBody.textContent = "Removed from Favourites 💔";
+                        flavourToast.show();
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                toastBody.textContent = "Something went wrong 😢";
+                flavourToast.show();
+            }
+        }
+    </script>
+}

@@ -6,13 +6,13 @@ namespace Travel_Booking.Models
     public class TravelBookingModel
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string UserId { get; set; } = string.Empty;
 
         [Required]
-        public int TravelDestinationId { get; set; }
+        public Guid TravelDestinationId { get; set; }
 
         [Required]
         [Range(0, double.MaxValue)]
@@ -24,11 +24,10 @@ namespace Travel_Booking.Models
 
         [Required]
         [MaxLength(50)]
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = "Paid";
 
         [Required]
         public DateTime BookedAt { get; set; } = DateTime.Now;
 
-        public Guid PublicId { get; set; } = Guid.NewGuid();
     }
 }

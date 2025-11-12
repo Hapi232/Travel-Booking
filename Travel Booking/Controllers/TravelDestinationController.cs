@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Travel_Booking.Data;
 using Travel_Booking.Models;
@@ -69,9 +70,6 @@ namespace Travel_Booking.Controllers
         // GET: TravelDestination/Details/5
         public async Task<IActionResult> Details(Guid id)
         {
-            if (id == null)
-                return BadRequest();
-
             var destination = await _context.TravelDestinations
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -122,9 +120,6 @@ namespace Travel_Booking.Controllers
         // GET: TravelDestination/Edit/5
         public async Task<IActionResult> Edit(Guid id)
         {
-            if (id == null)
-                return BadRequest();
-
             var destination = await _context.TravelDestinations.FindAsync(id);
             if (destination == null)
                 return NotFound();
@@ -137,7 +132,7 @@ namespace Travel_Booking.Controllers
 
         // POST: TravelDestination/Edit/5
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, TravelDestinationModel destination)
+        public async Task<IActionResult> Edit(Guid id, TravelDestinationModel destination)
         {
             if (id != destination.Id)
                 return NotFound();
@@ -170,9 +165,6 @@ namespace Travel_Booking.Controllers
         // GET: TravelDestination/Delete/5
         public async Task<IActionResult> Delete(Guid id)
         {
-            if (id == null)
-                return BadRequest();
-
             var destination = await _context.TravelDestinations
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -209,7 +201,7 @@ namespace Travel_Booking.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task<bool> TravelDestinationExists(int id)
+        private async Task<bool> TravelDestinationExists(Guid id)
         {
             return await _context.TravelDestinations.AnyAsync(e => e.Id == id);
         }

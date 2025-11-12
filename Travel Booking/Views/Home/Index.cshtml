@@ -22,28 +22,31 @@
 </section>
 
 <!-- Top Destinations Section -->
-<section id="top-destinations" class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5" data-aos="fade-up">Top Destinations</h2>
-        <div class="row g-4">
-            @foreach (var destination in Model)
-            {
-                <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card destination-card shadow-sm h-100">
-                        <div class="card-img-wrapper">
-                            <img src="@destination.ImageUrl" class="card-img-top" alt="@destination.Name"
-                                 style="object-fit: cover; aspect-ratio: 3/4;">
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">@destination.Name</h5>
-                            <p class="card-text text-muted">@destination.Description</p>
+@if (Model != null && Model.Any())
+{
+    <section id="top-destinations" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5" data-aos="fade-up">Top Destinations</h2>
+            <div class="row g-4">
+                @foreach (var destination in Model)
+                {
+                    <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card destination-card shadow-sm h-100">
+                            <div class="card-img-wrapper">
+                                <img src="@destination.ImageUrl" class="card-img-top" alt="@destination.Name"
+                                     style="object-fit: cover; aspect-ratio: 3/4;">
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">@destination.Name</h5>
+                                <p class="card-text text-muted">@destination.Description</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+}
 
 <style>
     .destination-card {

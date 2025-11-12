@@ -4,7 +4,7 @@ namespace Travel_Booking.Models
 {
     public class TravelDestinationViewModel
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         [Display(Name = "Price (RM)")]
@@ -15,6 +15,5 @@ namespace Travel_Booking.Models
         public int Quantity { get; set; } = 0;
 
         public bool IsAvailable { get; set; } = true;
-        public Guid PublicId { get; set; } = Guid.NewGuid();
     }
 }

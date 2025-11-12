@@ -5,7 +5,7 @@ namespace Travel_Booking.Models
     public class TravelDestinationModel
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string Name { get; set; }
@@ -37,6 +37,5 @@ namespace Travel_Booking.Models
 
         [Display(Name = "Available")]
         public bool IsAvailable { get; set; } = true;
-        public Guid PublicId { get; set; } = Guid.NewGuid();
     }
 }
