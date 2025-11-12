@@ -1,0 +1,26 @@
+﻿@model IEnumerable<Travel_Booking.Models.TravelDestinationModel>
+
+<div class="row row-cols-1 g-3">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="row g-0 align-items-center">
+                    <div class="col-md-4">
+                        <img src="@item.ImageUrl" class="img-fluid rounded-start" alt="@item.Name">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <a href="@Url.Action("Details", "Travel", new { id = item.Id })">
+                                @item.Name
+                            </a>
+                            <p class="card-text text-muted">@item.Description</p>
+                            <p class="card-text"><strong>Price:</strong> RM @item.Price</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+

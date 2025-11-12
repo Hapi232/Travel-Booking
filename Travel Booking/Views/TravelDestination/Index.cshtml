@@ -1,0 +1,50 @@
+﻿@model IEnumerable<Travel_Booking.Models.TravelDestinationViewModel>
+
+@{
+    ViewData["Title"] = "Travel Destinations";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3">Travel Destinations</h1>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg"></i> Create New
+        </a>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <input type="text" id="searchBox" class="form-control" placeholder="Search by name or description" />
+        </div>
+        <div class="col-md-3">
+            <select id="availableFilter" class="form-select">
+                <option value="">All</option>
+                <option value="true">Available Only</option>
+                <option value="false">Not Available</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="destinationsTable">
+        @await Html.PartialAsync("_TravelDestinationsTable", Model)
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        function loadTable() {
+            var search = $("#searchBox").val();
+            var available = $("#availableFilter").val();
+
+            $.get('@Url.Action("Filter", "TravelDestination")', { search: search, availableFilter: available }, function (data) {
+                $("#destinationsTable").html(data);
+            });
+        }
+
+        $(document).ready(function () {
+            $("#searchBox").on("input", loadTable);
+            $("#availableFilter").on("change", loadTable);
+        });
+    </script>
+}
