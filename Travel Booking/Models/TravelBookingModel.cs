@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Travel_Booking.Models
 {
@@ -13,6 +14,8 @@ namespace Travel_Booking.Models
 
         [Required]
         public Guid TravelDestinationId { get; set; }
+        [ForeignKey("TravelDestinationId")]
+        public TravelDestinationModel TravelDestination { get; set; } = default!;
 
         [Required]
         [Range(0, double.MaxValue)]

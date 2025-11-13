@@ -26,7 +26,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 6;
 })
-.AddRoles<IdentityRole>() // enable roles
+.AddRoles<IdentityRole>() // ✅ 启用角色支持
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // Add MVC controllers with views
@@ -40,8 +40,54 @@ builder.Services.AddRazorPages();
 // ------------------------
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedDefaultAdminAsync(services);
+}
+
+async Task SeedDefaultAdminAsync(IServiceProvider serviceProvider)
+{
+    var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    string adminRole = "Admin";
+    string userRole = "User";
+    string adminEmail = "admin@site.com";
+    string adminPassword = "Admin@123";
+
+    if (!await roleManager.RoleExistsAsync(adminRole))
+        await roleManager.CreateAsync(new IdentityRole(adminRole));
+
+    if (!await roleManager.RoleExistsAsync(userRole))
+        await roleManager.CreateAsync(new IdentityRole(userRole));
+
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new IdentityUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, adminRole);
+            Console.WriteLine("✅ Default admin account created!");
+        }
+        else
+        {
+            Console.WriteLine("❌ Failed to create admin:");
+            foreach (var error in result.Errors)
+                Console.WriteLine($"   - {error.Code}: {error.Description}");
+        }
+    }
+}
 // ------------------------
-// 3. Configure the HTTP request pipeline
+// 4. Configure the HTTP request pipeline
 // ------------------------
 if (app.Environment.IsDevelopment())
 {
@@ -65,7 +111,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // ------------------------
-// 4. Map routes
+// 5. Map routes
 // ------------------------
 
 // Default MVC route

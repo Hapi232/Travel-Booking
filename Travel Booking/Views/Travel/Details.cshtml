@@ -44,9 +44,11 @@
                     <small class="text-muted">Available: @Model.Quantity</small>
                 </div>
 
-                <button type="submit" class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-cart"></i> <span>Purchase</span>
-                </button>
+                <div class="d-grid gap-2">
+                    <a asp-action="PurchasePage" asp-route-travelId="@Model.Id" class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-cash-coin"></i> Purchase
+                    </a>
+                </div>
             </div>
         </div>
     </div>

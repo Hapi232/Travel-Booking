@@ -65,7 +65,7 @@ namespace Travel_Booking.Controllers
             if (destination == null)
                 return NotFound();
 
-            return View(destination); // 传到 Purchase 页面
+            return View(destination);
         }
 
         [HttpPost]

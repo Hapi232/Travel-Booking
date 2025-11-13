@@ -1,0 +1,281 @@
+﻿@model Travel_Booking.Models.TravelDestinationModel
+@{
+    ViewBag.Title = "Purchase Travel (Card Payment)";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-5 mb-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h3 class="mb-4 text-center text-primary">
+                <i class="bi bi-credit-card-2-front"></i> Secure Card Payment (Demo)
+            </h3>
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger text-center">@TempData["ErrorMessage"]</div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+            }
+
+            <div class="mb-4 text-center">
+                <img src="@Model.ImageUrl" class="img-fluid mb-3 rounded" style="max-height: 250px;" alt="@Model.Name" />
+                <h5>@Model.Name</h5>
+                <p class="text-muted">@Model.Description</p>
+                <p><strong>Price (per unit):</strong> RM @Model.Price</p>
+                <p><strong>Available Quantity:</strong> @Model.Quantity</p>
+            </div>
+
+            <form id="cardPaymentForm" asp-action="Purchase" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="travelId" value="@Model.Id" />
+                <!-- These two map to your Purchase(...) params.
+                     We set them from JS before submit. -->
+                <input type="hidden" id="bankName" name="bankName" value="" />
+                <input type="hidden" id="accountNumber" name="accountNumber" value="" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="@Model.Quantity" required />
+                        <div class="invalid-feedback">Please enter a valid quantity.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3 text-end align-self-end">
+                        <small class="text-muted">Total: <strong id="totalAmount">RM @(Model.Price)</strong></small>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="mb-3">
+                    <label for="cardHolder" class="form-label">Cardholder Name</label>
+                    <input type="text" id="cardHolder" class="form-control" placeholder="Name on card" required />
+                    <div class="invalid-feedback">Cardholder name is required.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cardNumber" class="form-label">Card Number</label>
+                    <div class="input-group">
+                        <input type="text" id="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" inputmode="numeric" autocomplete="cc-number" maxlength="19" required />
+                        <span class="input-group-text" id="cardBrandIcon"><i class="bi bi-credit-card-2-front"></i></span>
+                    </div>
+                    <div class="form-text">We accept Visa, MasterCard, Amex (demo only).</div>
+                    <div class="invalid-feedback" id="cardNumberFeedback">Please enter a valid card number.</div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-md-4">
+                        <label for="expiry" class="form-label">Expiry (MM/YY)</label>
+                        <input type="text" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp" required />
+                        <div class="invalid-feedback" id="expiryFeedback">Enter valid future expiry date.</div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label for="cvv" class="form-label">CVV</label>
+                        <input type="password" id="cvv" class="form-control" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc" required />
+                        <div class="invalid-feedback" id="cvvFeedback">Invalid CVV.</div>
+                    </div>
+
+                    <div class="col-md-5 d-flex align-items-end">
+                        <div>
+                            <label class="form-label mb-0">Remember</label>
+                            <div class="form-text">This demo does not store full card details.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button id="payBtn" type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check2-circle"></i> Pay Now
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Details
+                    </a>
+                </div>
+            </form>
+
+            <div class="mt-3">
+                <small class="text-muted">
+                    Demo payment form — <strong>do not</strong> accept/store raw card numbers or CVVs in production.
+                    Integrate a PCI-compliant payment gateway (e.g. Stripe, PayPal, Braintree) and send only tokens to your server.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- helpers ---
+        function luhnCheck(cardNumber) {
+            // remove spaces
+            let s = cardNumber.replace(/\s+/g, '');
+            if (!/^\d+$/.test(s)) return false;
+            let sum = 0;
+            let shouldDouble = false;
+            for (let i = s.length - 1; i >= 0; i--) {
+                let digit = parseInt(s.charAt(i), 10);
+                if (shouldDouble) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+            return sum % 10 === 0;
+        }
+
+        function detectCardBrand(number) {
+            const s = number.replace(/\s+/g, '');
+            if (/^4/.test(s)) return "visa";
+            if (/^5[1-5]/.test(s) || /^2(2[2-9]|[3-6]\d|7[01])/.test(s)) return "mastercard";
+            if (/^3[47]/.test(s)) return "amex";
+            return "unknown";
+        }
+
+        function formatCardNumber(v) {
+            // add spaces every 4 digits (simple)
+            return v.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function isExpiryValid(mmYY) {
+            if (!/^\d{2}\/\d{2}$/.test(mmYY)) return false;
+            const parts = mmYY.split('/');
+            const mm = parseInt(parts[0], 10);
+            const yy = parseInt(parts[1], 10);
+            if (mm < 1 || mm > 12) return false;
+            const now = new Date();
+            const fullYear = 2000 + yy;
+            // expiry end of month
+            const expiry = new Date(fullYear, mm, 0, 23, 59, 59);
+            return expiry >= new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        }
+
+        // --- UI bindings ---
+        const cardNumberInput = document.getElementById('cardNumber');
+        const cardBrandIcon = document.getElementById('cardBrandIcon');
+        const expiryInput = document.getElementById('expiry');
+        const cvvInput = document.getElementById('cvv');
+        const cardHolderInput = document.getElementById('cardHolder');
+        const quantityInput = document.getElementById('quantity');
+        const totalAmountEl = document.getElementById('totalAmount');
+
+        const pricePerUnit = parseFloat('@Model.Price'.replace(',', '.')) || 0;
+
+        function updateTotal() {
+            const qty = Math.max(1, parseInt(quantityInput.value || "1", 10));
+            totalAmountEl.textContent = "RM " + (pricePerUnit * qty).toFixed(2);
+        }
+        quantityInput.addEventListener('change', updateTotal);
+
+        cardNumberInput.addEventListener('input', function (e) {
+            const formatted = formatCardNumber(e.target.value);
+            e.target.value = formatted;
+            const brand = detectCardBrand(formatted);
+            cardBrandIcon.innerHTML = brand === 'visa' ? '<i class="bi bi-credit-card-fill"></i> Visa'
+                : brand === 'mastercard' ? '<i class="bi bi-credit-card-2-back"></i> MasterCard'
+                : brand === 'amex' ? '<i class="bi bi-credit-card"></i> Amex'
+                : '<i class="bi bi-credit-card-2-front"></i>';
+        });
+
+        // expiry formatting MM/YY
+        expiryInput.addEventListener('input', function (e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2, 4);
+            e.target.value = v;
+        });
+
+        // form submit handler
+        const form = document.getElementById('cardPaymentForm');
+        form.addEventListener('submit', function (ev) {
+            ev.preventDefault();
+            // clear previous validation classes
+            form.classList.remove('was-validated');
+
+            let ok = true;
+
+            // quantity
+            const qty = parseInt(quantityInput.value || "0", 10);
+            if (!qty || qty < 1 || qty > @Model.Quantity) {
+                quantityInput.classList.add('is-invalid');
+                ok = false;
+            } else {
+                quantityInput.classList.remove('is-invalid');
+            }
+
+            // holder
+            if (!cardHolderInput.value.trim()) {
+                cardHolderInput.classList.add('is-invalid');
+                ok = false;
+            } else {
+                cardHolderInput.classList.remove('is-invalid');
+            }
+
+            // card number
+            const cardNumRaw = cardNumberInput.value.replace(/\s+/g, '');
+            if (!luhnCheck(cardNumberInput.value) || cardNumRaw.length < 13) {
+                cardNumberInput.classList.add('is-invalid');
+                document.getElementById('cardNumberFeedback').textContent = "Invalid card number.";
+                ok = false;
+            } else {
+                cardNumberInput.classList.remove('is-invalid');
+            }
+
+            // expiry
+            if (!isExpiryValid(expiryInput.value)) {
+                expiryInput.classList.add('is-invalid');
+                ok = false;
+            } else {
+                expiryInput.classList.remove('is-invalid');
+            }
+
+            // cvv
+            const brand = detectCardBrand(cardNumberInput.value);
+            const cvvVal = cvvInput.value.trim();
+            const cvvLen = cvvVal.length;
+            const cvvOk = (brand === 'amex' && cvvLen === 4) || (brand !== 'amex' && (cvvLen === 3 || cvvLen === 4));
+            if (!/^\d+$/.test(cvvVal) || !cvvOk) {
+                cvvInput.classList.add('is-invalid');
+                ok = false;
+            } else {
+                cvvInput.classList.remove('is-invalid');
+            }
+
+            if (!ok) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            // ----- PREPARE payload for your Purchase(...) action -----
+            // For demo only: we will NOT send full card number or CVV to server.
+            // We send:
+            //   bankName = "CARD:<Cardholder>|<Brand>"
+            //   accountNumber = "<last4>"  (so Purchase() sees something non-empty)
+            const last4 = cardNumRaw.slice(-4);
+            const cardHolder = cardHolderInput.value.trim();
+            const brandLabel = detectCardBrand(cardNumberInput.value);
+            document.getElementById('bankName').value = `CARD:${cardHolder}|${brandLabel}`;
+            document.getElementById('accountNumber').value = last4;
+
+            // Optionally: show a small confirm dialog with total
+            const totalText = totalAmountEl.textContent;
+            if (!confirm(`Pay ${totalText} now with ${brandLabel.toUpperCase()} ending ${last4}?`)) {
+                return;
+            }
+
+            // finally submit the form (will call your Purchase action)
+            form.submit();
+        });
+
+        // init
+        updateTotal();
+    </script>
+}
