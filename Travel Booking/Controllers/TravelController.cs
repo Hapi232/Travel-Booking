@@ -20,52 +20,83 @@ namespace Travel_Booking.Controllers
         // GET: Travel/List
         public async Task<IActionResult> Index()
         {
-            var destinations = await _context.TravelDestinations.ToListAsync();
-            return View(destinations);
+            try
+            {
+                var destinations = await _context.TravelDestinations.ToListAsync();
+                return View(destinations);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+                throw;
+            }
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> Filter(string searchText = "", decimal minPrice = 0, decimal maxPrice = 10000)
         {
-            var destinations = await _context.TravelDestinations
-                .Where(d => d.IsAvailable
-                            && d.Price >= minPrice
-                            && d.Price <= maxPrice
-                            && (d.Name.Contains(searchText) || d.Description.Contains(searchText)))
-                .ToListAsync();
+            try
+            {
+                var destinations = await _context.TravelDestinations
+                    .Where(d => d.IsAvailable
+                                && d.Price >= minPrice
+                                && d.Price <= maxPrice
+                                && (d.Name.Contains(searchText) || d.Description.Contains(searchText)))
+                    .ToListAsync();
 
-            return PartialView("_DestinationListPartial", destinations);
+                return PartialView("_DestinationListPartial", destinations);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+                throw;
+            }
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> Details(Guid id)
         {
-            if (id == Guid.Empty)
-                return BadRequest();
+            try
+            {
+                if (id == Guid.Empty)
+                    return BadRequest();
 
-            var destination = await _context.TravelDestinations
-                .FirstOrDefaultAsync(d => d.Id == id);
+                var destination = await _context.TravelDestinations.FirstOrDefaultAsync(d => d.Id == id);
 
-            if (destination == null)
-                return NotFound();
+                if (destination == null)
+                    return NotFound();
 
-            return View(destination);
+                return View(destination);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+                throw;
+            }
         }
 
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> PurchasePage(Guid travelId)
         {
-            if (travelId == Guid.Empty)
-                return BadRequest();
+            try
+            {
+                if (travelId == Guid.Empty)
+                    return BadRequest();
 
-            var destination = await _context.TravelDestinations
-                .FirstOrDefaultAsync(d => d.Id == travelId);
+                var destination = await _context.TravelDestinations
+                    .FirstOrDefaultAsync(d => d.Id == travelId);
 
-            if (destination == null)
-                return NotFound();
+                if (destination == null)
+                    return NotFound();
 
-            return View(destination);
+                return View(destination);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+                throw;
+            }
         }
 
         [HttpPost]
@@ -76,7 +107,7 @@ namespace Travel_Booking.Controllers
             if (travelId == Guid.Empty || quantity < 1)
                 return BadRequest();
 
-            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
@@ -110,11 +141,14 @@ namespace Travel_Booking.Controllers
                     Status = "Paid",
                     BookedAt = DateTime.Now
                 };
+
                 _context.TravelBookings.Add(booking);
 
                 destination.Quantity -= quantity;
+
                 if (destination.Quantity == 0)
                     destination.IsAvailable = false;
+
                 _context.TravelDestinations.Update(destination);
 
                 await _context.SaveChangesAsync();
@@ -123,13 +157,13 @@ namespace Travel_Booking.Controllers
                 TempData["SuccessMessage"] = "Purchase successful!";
                 return RedirectToAction("Details", new { id = travelId });
             }
-            catch
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 TempData["ErrorMessage"] = "Purchase failed. Please try again.";
                 return RedirectToAction("PurchasePage", new { travelId });
+                throw;
             }
         }
-
     }
 }

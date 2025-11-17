@@ -20,25 +20,35 @@ namespace Travel_Booking.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var destinations = await _context.TravelDestinations
-                                                .Where(d => d.IsAvailable)
-                                                .OrderBy(d => Guid.NewGuid())
-                                                .Take(4)
-                                                .ToListAsync();
-
-            var viewModel = destinations.Select(d => new TravelDestinationViewModel
+            try
             {
-                Id = d.Id,
-                Name = d.Name,
-                Description = d.Description,
-                ImageUrl = d.ImageUrl,
-                IsAvailable = d.IsAvailable,
-                StartTripString = d.StartTrip.ToString("yyyy-MM-dd"),
-                EndTripString = d.EndTrip.ToString("yyyy-MM-dd")
-            }).ToList();
+                var destinations = await _context.TravelDestinations
+                                                    .Where(d => d.IsAvailable)
+                                                    .OrderBy(d => Guid.NewGuid())
+                                                    .Take(4)
+                                                    .ToListAsync();
 
-            return View(viewModel);
+                var viewModel = destinations.Select(d => new TravelDestinationViewModel
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Description = d.Description,
+                    ImageUrl = d.ImageUrl,
+                    IsAvailable = d.IsAvailable,
+                    StartTripString = d.StartTrip.ToString("yyyy-MM-dd"),
+                    EndTripString = d.EndTrip.ToString("yyyy-MM-dd")
+                }).ToList();
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading homepage data");
+                return RedirectToAction("Error");
+                throw ex;
+            }
         }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
