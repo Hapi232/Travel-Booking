@@ -16,23 +16,26 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add developer exception page for database errors
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// Add Identity with Roles support
+// ------------------------
+// Identity Configuration
+// ------------------------
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;
+
+    // Password rules
     options.Password.RequireDigit = true;
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 6;
 })
-.AddRoles<IdentityRole>() // ✅ 启用角色支持
-.AddEntityFrameworkStores<ApplicationDbContext>();
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
-// Add MVC controllers with views
+// Add MVC + Razor Pages
 builder.Services.AddControllersWithViews();
-
-// Add Razor Pages (needed for Identity UI)
 builder.Services.AddRazorPages();
 
 // ------------------------
@@ -40,12 +43,16 @@ builder.Services.AddRazorPages();
 // ------------------------
 var app = builder.Build();
 
+// Create scope for seeding admin
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await SeedDefaultAdminAsync(services);
 }
 
+// ------------------------
+// Default Admin Seeder
+// ------------------------
 async Task SeedDefaultAdminAsync(IServiceProvider serviceProvider)
 {
     var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
@@ -56,12 +63,14 @@ async Task SeedDefaultAdminAsync(IServiceProvider serviceProvider)
     string adminEmail = "admin@site.com";
     string adminPassword = "Admin@123";
 
+    // Create Roles
     if (!await roleManager.RoleExistsAsync(adminRole))
         await roleManager.CreateAsync(new IdentityRole(adminRole));
 
     if (!await roleManager.RoleExistsAsync(userRole))
         await roleManager.CreateAsync(new IdentityRole(userRole));
 
+    // Create Admin User
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
     {
@@ -69,10 +78,11 @@ async Task SeedDefaultAdminAsync(IServiceProvider serviceProvider)
         {
             UserName = adminEmail,
             Email = adminEmail,
-            EmailConfirmed = true
+            EmailConfirmed = true    // 必须 Confirm，不然无法登录
         };
 
         var result = await userManager.CreateAsync(adminUser, adminPassword);
+
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(adminUser, adminRole);
@@ -86,8 +96,9 @@ async Task SeedDefaultAdminAsync(IServiceProvider serviceProvider)
         }
     }
 }
+
 // ------------------------
-// 4. Configure the HTTP request pipeline
+// 3. Configure the HTTP request pipeline
 // ------------------------
 if (app.Environment.IsDevelopment())
 {
@@ -100,26 +111,21 @@ else
     app.UseHsts();
 }
 
-// Enable HTTPS and static files
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// Enable authentication & authorization
+// Authentication + Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ------------------------
-// 5. Map routes
-// ------------------------
-
-// Default MVC route
+// Default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Identity UI (Login, Register, etc.)
+// Identity Login/Register/Forgot Password etc.
 app.MapRazorPages();
 
 app.Run();

@@ -37,5 +37,10 @@ namespace Travel_Booking.Models
 
         [Display(Name = "Available")]
         public bool IsAvailable { get; set; } = true;
+
+        public ICollection<TravelBookingModel> TravelBookings { get; set; }
+        = new List<TravelBookingModel>();
+        public ICollection<FlavourModel> Flavours { get; set; } = new List<FlavourModel>();  // ✅ 必须加
+
     }
 }

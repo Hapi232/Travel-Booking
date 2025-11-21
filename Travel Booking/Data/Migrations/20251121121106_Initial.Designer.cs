@@ -5,14 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Travel_Booking.Data;
 
 #nullable disable
 
 namespace Travel_Booking.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251112162717_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251121121106_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -372,7 +373,7 @@ namespace Travel_Booking.Data.Migrations
             modelBuilder.Entity("Travel_Booking.Models.FlavourModel", b =>
                 {
                     b.HasOne("Travel_Booking.Models.TravelDestinationModel", "TravelDestination")
-                        .WithMany()
+                        .WithMany("Flavours")
                         .HasForeignKey("TravelDestinationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -382,11 +383,20 @@ namespace Travel_Booking.Data.Migrations
 
             modelBuilder.Entity("Travel_Booking.Models.TravelBookingModel", b =>
                 {
-                    b.HasOne("Travel_Booking.Models.TravelDestinationModel", null)
-                        .WithMany()
+                    b.HasOne("Travel_Booking.Models.TravelDestinationModel", "TravelDestination")
+                        .WithMany("TravelBookings")
                         .HasForeignKey("TravelDestinationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("TravelDestination");
+                });
+
+            modelBuilder.Entity("Travel_Booking.Models.TravelDestinationModel", b =>
+                {
+                    b.Navigation("Flavours");
+
+                    b.Navigation("TravelBookings");
                 });
 #pragma warning restore 612, 618
         }
