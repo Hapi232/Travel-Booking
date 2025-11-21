@@ -40,7 +40,7 @@ namespace Travel_Booking.Models
 
         public ICollection<TravelBookingModel> TravelBookings { get; set; }
         = new List<TravelBookingModel>();
-        public ICollection<FlavourModel> Flavours { get; set; } = new List<FlavourModel>();  // ✅ 必须加
+        public ICollection<FlavourModel> Flavours { get; set; } = new List<FlavourModel>();
 
     }
 }

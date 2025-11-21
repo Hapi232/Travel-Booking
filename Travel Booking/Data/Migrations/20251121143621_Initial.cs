@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Travel_Booking.Data.Migrations
+namespace Travel_Booking.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -191,7 +191,7 @@ namespace Travel_Booking.Data.Migrations
                         column: x => x.TravelDestinationId,
                         principalTable: "TravelDestinations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -214,7 +214,7 @@ namespace Travel_Booking.Data.Migrations
                         column: x => x.TravelDestinationId,
                         principalTable: "TravelDestinations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(

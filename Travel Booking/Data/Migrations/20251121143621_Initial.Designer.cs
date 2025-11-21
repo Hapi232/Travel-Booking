@@ -9,10 +9,10 @@ using Travel_Booking.Data;
 
 #nullable disable
 
-namespace Travel_Booking.Data.Migrations
+namespace Travel_Booking.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251121121106_Initial")]
+    [Migration("20251121143621_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -375,7 +375,7 @@ namespace Travel_Booking.Data.Migrations
                     b.HasOne("Travel_Booking.Models.TravelDestinationModel", "TravelDestination")
                         .WithMany("Flavours")
                         .HasForeignKey("TravelDestinationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("TravelDestination");
@@ -386,7 +386,7 @@ namespace Travel_Booking.Data.Migrations
                     b.HasOne("Travel_Booking.Models.TravelDestinationModel", "TravelDestination")
                         .WithMany("TravelBookings")
                         .HasForeignKey("TravelDestinationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("TravelDestination");

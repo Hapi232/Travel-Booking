@@ -26,13 +26,14 @@ namespace Travel_Booking.Data
                 .HasOne(b => b.TravelDestination)
                 .WithMany(d => d.TravelBookings)
                 .HasForeignKey(b => b.TravelDestinationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FlavourModel>()
                 .HasOne(f => f.TravelDestination)
                 .WithMany(d => d.Flavours)
                 .HasForeignKey(f => f.TravelDestinationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

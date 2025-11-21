@@ -47,6 +47,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    var db = services.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+
     await SeedDefaultAdminAsync(services);
 }
 
@@ -78,7 +82,7 @@ async Task SeedDefaultAdminAsync(IServiceProvider serviceProvider)
         {
             UserName = adminEmail,
             Email = adminEmail,
-            EmailConfirmed = true    // 必须 Confirm，不然无法登录
+            EmailConfirmed = true
         };
 
         var result = await userManager.CreateAsync(adminUser, adminPassword);
